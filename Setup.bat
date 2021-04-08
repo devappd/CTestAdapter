@@ -24,7 +24,7 @@ echo == using cmake from:
 echo == %CTestAdapter_CMAKE%
 echo ===============================================================
 
-if not defined VS_VERSION set VS_VERSION=15
+if not defined VS_VERSION set VS_VERSION=16
 if not defined ADDITIONAL_CMAKE_PARAMS set ADDITIONAL_CMAKE_PARAMS=
 
 set CMAKE_SOURCEDIR=%~dp0

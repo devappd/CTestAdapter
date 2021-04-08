@@ -67,6 +67,18 @@ elseif(${VS_VERSION} EQUAL 15)
     Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime)
   set(CTestAdapter_VSVersionRange
     "[${VS_VERSION}.0,16.0)")
+elseif(${VS_VERSION} EQUAL 16)
+  list(APPEND VSPACKAGE_REFERENCES
+    Microsoft.VisualStudio.Shell.15.0
+    Microsoft.VisualStudio.Threading
+    Microsoft.VisualStudio.Validation
+    Microsoft.VisualStudio.Shell.Interop.12.0
+    Microsoft.VisualStudio.Imaging
+    Microsoft.VisualStudio.Utilities
+    Microsoft.VisualStudio.Shell.Framework
+    Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime)
+  set(CTestAdapter_VSVersionRange
+    "[${VS_VERSION}.0,17.0)")
 else()
 endif()
 
@@ -200,7 +212,7 @@ endforeach()
 set(VsSdkTargetsFileSubPath
   "Microsoft/VisualStudio/v${MSBUILD_VERSION}/VSSDK/Microsoft.VsSDK.targets")
 set(VsSdkTargetsFile "$ENV{ProgramFiles\(x86\)}/MSBuild/${VsSdkTargetsFileSubPath}")
-if(${VS_VERSION} STREQUAL "15")
+if(${VS_VERSION} STREQUAL "15" OR ${VS_VERSION} STREQUAL "16")
   string(REPLACE 
     "/Common7/IDE/devenv.com" "/MSBuild/${VsSdkTargetsFileSubPath}" 
     VsSdkTargetsFile "${CMAKE_VS_DEVENV_COMMAND}")

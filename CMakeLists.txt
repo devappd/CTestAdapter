@@ -20,6 +20,7 @@ set(FW_VS11 "4.5")
 set(FW_VS12 "4.5")
 set(FW_VS14 "4.5")
 set(FW_VS15 "4.6")
+set(FW_VS16 "4.7.2")
 set(DOTNET_FRAMEWORK_VERSION "v${FW_VS${VS_VERSION}}")
 
 set(MSBUILD_VERSION "${VS_VERSION}.0")
