@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using Microsoft;
 
 namespace CTestAdapter
 {
@@ -16,7 +17,7 @@ namespace CTestAdapter
     public CTestContainerDiscoverer(
       [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
     {
-      ValidateArg.NotNull(serviceProvider, "serviceProvider");
+      Requires.NotNull(serviceProvider, "serviceProvider");
       this.ExecutorUri = new Uri(Constants.ExecutorUriString);
       this._cachedContainers = new List<ITestContainer>();
       var pkg = CTestAdapterPackage.Instance;

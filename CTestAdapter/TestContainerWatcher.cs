@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
+using Microsoft;
 
 namespace CTestAdapter.Events
 {
@@ -54,7 +55,7 @@ namespace CTestAdapter.Events
 
     public void AddWatch(string path)
     {
-      ValidateArg.NotNullOrEmpty(path, "path");
+      Requires.NotNullOrEmpty(path, "path");
       if (string.IsNullOrEmpty(path))
       {
         return;
@@ -81,7 +82,7 @@ namespace CTestAdapter.Events
 
     public void RemoveWatch(string path)
     {
-      ValidateArg.NotNullOrEmpty(path, "path");
+      Requires.NotNullOrEmpty(path, "path");
       if (string.IsNullOrEmpty(path))
       {
         return;
