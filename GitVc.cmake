@@ -89,7 +89,7 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/.git/HEAD")
         # compute ${PROJECT_NAME}_VERSION_REVIS as ((month-1)*31)+day
         # Revision is limited to range [0-65534]!
         string(REGEX REPLACE
-          "^[0-9][0-9]([0-9]+)-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+):[0-9]+\\+[0-9]+:[0-9]+$"
+          "^[0-9][0-9]([0-9]+)-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+):[0-9]+[\\+\\-][0-9]+:[0-9]+$"
           "\\1\\2\\3" GIT_DATE ${GIT_DATE})
         math(EXPR day "((${CMAKE_MATCH_2}-1) * 31) + ${CMAKE_MATCH_3}")
         set(${PROJECT_NAME}_VERSION_REVIS "${CMAKE_MATCH_1}${day}")
