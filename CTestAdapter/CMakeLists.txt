@@ -161,7 +161,7 @@ add_library(${ADAPTER_NAME} SHARED
   ${ORIGINATOR_KEYFILE})
 
 target_compile_options(${ADAPTER_NAME} PRIVATE
-  "/langversion:4"
+  "/langversion:5"
   "/platform:anycpu")
 
 set_target_properties(${ADAPTER_NAME}

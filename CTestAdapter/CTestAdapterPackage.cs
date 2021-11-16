@@ -1,7 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Timers;
 using CTestAdapter.Events;
 using Microsoft.VisualStudio;
@@ -15,7 +17,7 @@ namespace CTestAdapter
    * 
    * The attributes tell the pkgdef creation utility what data to put into .pkgdef file.
    */
-  [PackageRegistration(UseManagedResourcesOnly = true)]
+  [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
   // Info on this package for Help/About
   [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] 
   [Guid(Constants.PackageString)]
@@ -27,9 +29,9 @@ namespace CTestAdapter
     Constants.OptionsPageGridPage,
     0, 0, true)]
   [ProvideMenuResource("Menus.ctmenu",1)]
-  [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_string)]
-  [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionOpening_string)]
-  public sealed class CTestAdapterPackage : Package, ILog
+  [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_string, PackageAutoLoadFlags.BackgroundLoad)]
+  [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionOpening_string, PackageAutoLoadFlags.BackgroundLoad)]
+  public sealed class CTestAdapterPackage : AsyncPackage, ILog
   {
     private const string GitHubUrl = "https://github.com/micst/CTestAdapter";
     private const int ConfigurationTimerIntervalMs = 1000;
@@ -82,12 +84,12 @@ namespace CTestAdapter
     /**
      * @brief initialization with Visual Studio services available.
      */
-    protected override void Initialize()
+    protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
       this.SetOptions(null);
       CTestCommand.Initialize(this);
       this._log.Activate();
-      base.Initialize();
+      await base.InitializeAsync(cancellationToken, progress);
     }
 
     public static CTestAdapterPackage Instance { get; private set; }
