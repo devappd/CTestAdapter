@@ -143,7 +143,11 @@ set_source_files_properties(${RESX_SOURCES}
   VS_CSHARP_MergeWithCTO "true"
   VS_CSHARP_ManifestResourceName "VSPackage")
 
-set_source_files_properties(CTestAdapterOptionPage.cs
+set_source_files_properties(CTestAdapterOptionsLoggingPage.cs
+  PROPERTIES
+  VS_CSHARP_SubType "Code")
+
+set_source_files_properties(CTestAdapterOptionsCTestPage.cs
   PROPERTIES
   VS_CSHARP_SubType "Code")
 

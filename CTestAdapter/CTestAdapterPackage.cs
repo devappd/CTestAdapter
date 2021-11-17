@@ -24,9 +24,13 @@ namespace CTestAdapter
   [SuppressMessage("StyleCop.CSharp.DocumentationRules",
     "SA1650:ElementDocumentationMustBeSpelledCorrectly",
     Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-  [ProvideOptionPage(typeof(CTestAdapterOptionPage),
-    Constants.OptionsPageCategory,
-    Constants.OptionsPageGridPage,
+  [ProvideOptionPage(typeof(CTestAdapterOptionsLoggingPage),
+    Constants.OptionsCategory,
+    Constants.OptionsLoggingPage,
+    0, 0, true)]
+  [ProvideOptionPage(typeof(CTestAdapterOptionsCTestPage),
+    Constants.OptionsCategory,
+    Constants.OptionsCTestPage,
     0, 0, true)]
   [ProvideMenuResource("Menus.ctmenu",1)]
   [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_string, PackageAutoLoadFlags.BackgroundLoad)]
@@ -39,6 +43,7 @@ namespace CTestAdapter
     private bool _validRelease = false;
     private bool _ctestAdapterEnabled = false;
     private string _cMakeCacheDirectory = "";
+    private CTestContainerDiscoverer _discoverer = null;
     // private self-managed members
     private readonly CTestAdapterConfig _config;
     private readonly DTE _dte;
@@ -49,7 +54,6 @@ namespace CTestAdapter
     private readonly System.Timers.Timer _activeConfigurationTimer;
     private readonly ILogWriter _log;
     //
-    private CTestContainerDiscoverer _discoverer = null;
 
     /**
      * @brief initialization WITHOUT Visual Studio services available.
@@ -163,10 +167,21 @@ namespace CTestAdapter
       get { return this._log; }
     }
 
-    public void SetOptions(CTestAdapterOptionPage options)
+    public void SetOptions(CTestAdapterOptionsLoggingPage options)
     {
       var logOpts = this.GetLogWriterOptions(options);
       this._log.SetOptions(logOpts);
+    }
+
+    public void SetCTestOptions(CTestAdapterOptionsCTestPage options)
+    {
+      if (null == options)
+      {
+        options = (CTestAdapterOptionsCTestPage)this.GetDialogPage(typeof(CTestAdapterOptionsCTestPage));
+        options.LoadSettingsFromStorage();
+      }
+      this._config.CTestRunArguments = options.CTestRunArguments;
+      CTestAdapterConfig.WriteToDisk(this._config);
     }
 
     private void SolutionLoaded()
@@ -279,11 +294,11 @@ namespace CTestAdapter
       this._containerManager.FindTestContainers();
     }
 
-    private LogWriterOptions GetLogWriterOptions(CTestAdapterOptionPage options)
+    private LogWriterOptions GetLogWriterOptions(CTestAdapterOptionsLoggingPage options)
     {
       if (null == options)
       {
-        options = (CTestAdapterOptionPage)this.GetDialogPage(typeof(CTestAdapterOptionPage));
+        options = (CTestAdapterOptionsLoggingPage)this.GetDialogPage(typeof(CTestAdapterOptionsLoggingPage));
         options.LoadSettingsFromStorage();
       }
       var logOpts = new LogWriterOptions()

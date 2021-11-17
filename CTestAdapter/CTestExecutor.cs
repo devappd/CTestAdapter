@@ -172,6 +172,10 @@ namespace CTestAdapter
         {
           args += " -C \"" + this._config.ActiveConfiguration + "\"";
         }
+        if (this._config.CTestRunArguments.Length > 0)
+        {
+          args += " " + this._config.CTestRunArguments;
+        }
         this._procParam.Arguments = args;
         this._procParam.FileName = this._config.CTestExecutable;
         this._procParam.WorkingDirectory = this._config.CacheDir;

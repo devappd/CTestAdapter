@@ -17,6 +17,7 @@ namespace CTestAdapter
     private string _activeConfiguration = "";
     private string _ctestExecutable = "";
     private string _cmakeConfigurationTypes = "";
+    private string _ctestRunArguments = "";
 
     public string CacheDir
     {
@@ -67,6 +68,20 @@ namespace CTestAdapter
           return;
         }
         this._cmakeConfigurationTypes = value;
+        this._dirty = true;
+      }
+    }
+
+    public string CTestRunArguments
+    {
+      get { return this._ctestRunArguments; }
+      set
+      {
+        if (this._ctestRunArguments == value)
+        {
+          return;
+        }
+        this._ctestRunArguments = value;
         this._dirty = true;
       }
     }

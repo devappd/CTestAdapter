@@ -34,7 +34,8 @@ namespace CTestAdapter
     public const string LogPrefixCaWt = "WatcherCache: ";
     public const string LogPrefixCMgr = "WatcherCont:  ";
 
-    public const string OptionsPageCategory = "CTestAdapter";
-    public const string OptionsPageGridPage = "Logging";
+    public const string OptionsCategory = "CTestAdapter";
+    public const string OptionsLoggingPage = "Logging";
+    public const string OptionsCTestPage = "CTest";
   }
 }
