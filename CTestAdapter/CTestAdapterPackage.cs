@@ -87,7 +87,6 @@ namespace CTestAdapter
     protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
       this.SetOptions(null);
-      CTestCommand.Initialize(this);
       this._log.Activate();
       var dvr = CTestContainerDiscoverer.Instance;
       if (null == this._discoverer && null != dvr)
