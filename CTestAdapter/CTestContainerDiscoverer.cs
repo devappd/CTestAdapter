@@ -13,11 +13,14 @@ namespace CTestAdapter
   {
     private readonly List<ITestContainer> _cachedContainers;
 
+    public static CTestContainerDiscoverer Instance { get; private set; }
+
     [ImportingConstructor]
     public CTestContainerDiscoverer(
       [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
     {
       Requires.NotNull(serviceProvider, "serviceProvider");
+      Instance = this;
       this.ExecutorUri = new Uri(Constants.ExecutorUriString);
       this._cachedContainers = new List<ITestContainer>();
       var pkg = CTestAdapterPackage.Instance;

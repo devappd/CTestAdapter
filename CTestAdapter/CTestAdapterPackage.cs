@@ -89,6 +89,12 @@ namespace CTestAdapter
       this.SetOptions(null);
       CTestCommand.Initialize(this);
       this._log.Activate();
+      var dvr = CTestContainerDiscoverer.Instance;
+      if (null == this._discoverer && null != dvr)
+      {
+        this.Discoverer = dvr;
+      }
+      SolutionLoaded();
       await base.InitializeAsync(cancellationToken, progress);
     }
 
@@ -168,7 +174,11 @@ namespace CTestAdapter
     {
       if (this._dte != null)
       {
-        this.CMakeCacheDirectory = Path.GetDirectoryName(this._dte.Solution.FileName);
+        bool solutionIsValid = (this._dte.Solution.IsOpen && this._dte.Solution.FullName.Length > 0);
+        if (solutionIsValid)
+        { 
+          this.CMakeCacheDirectory = Path.GetDirectoryName(this._dte.Solution.FileName);
+        }
       }
       if (null == this.CMakeCacheDirectory)
       {
