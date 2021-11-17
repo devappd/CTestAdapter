@@ -32,7 +32,8 @@ namespace CTestAdapter
     private readonly ILog _log;
     private readonly Dictionary<string, CMakeCacheEntry> _cacheEntries;
     private string _cmakeCacheFile;
-    private FileInfo _cmakeCacheInfo;
+    // @todo Determine why this fails when modifying CMakeCache for the first time since VS process started
+    // private FileInfo _cmakeCacheInfo;
     private CMakeCacheEntry _tmpEntry;
 
     public CMakeCache(ILog log)
@@ -71,19 +72,20 @@ namespace CTestAdapter
         return;
       }
       var newInfo = new FileInfo(this._cmakeCacheFile);
-      if (this._cmakeCacheInfo != null)
-      {
-        this.Log(LogLevel.Debug, "LoadCMakeCache: comparing already loaded CMakeCache");
-        if (this._cmakeCacheInfo.FullName == newInfo.FullName &&
-            this._cmakeCacheInfo.LastWriteTime == newInfo.LastWriteTime &&
-            newInfo.Exists)
-        {
-          this.Log(LogLevel.Debug, "LoadCMakeCache: CMakeCache did not change, not reloading");
-          return;
-        }
-      }
+      // @todo Determine why this fails when modifying CMakeCache for the first time since VS process started
+      // if (this._cmakeCacheInfo != null)
+      // {
+      //   this.Log(LogLevel.Debug, "LoadCMakeCache: comparing already loaded CMakeCache");
+      //   if (this._cmakeCacheInfo.FullName == newInfo.FullName &&
+      //       this._cmakeCacheInfo.LastWriteTime == newInfo.LastWriteTime &&
+      //       newInfo.Exists)
+      //   {
+      //     this.Log(LogLevel.Debug, "LoadCMakeCache: CMakeCache did not change, not reloading");
+      //     return;
+      //   }
+      // }
+      //this._cmakeCacheInfo = newInfo;
       this.Log(LogLevel.Debug, "LoadCMakeCache: loading CMakeCache from \"" + this._cmakeCacheFile + "\"");
-      this._cmakeCacheInfo = newInfo;
       this._cacheEntries.Clear();
       if (!File.Exists(this._cmakeCacheFile))
       {
