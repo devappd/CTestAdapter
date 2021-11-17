@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Text;
+using System.Text.Json;
 using EnvDTE;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
@@ -16,12 +18,6 @@ namespace CTestAdapter
 
     private const string FieldNameTestname = "testname";
     private const string FieldNameCfgRegex = "cfgregex";
-
-    private static readonly Regex IfLevelRegex =
-      new Regex("^(else|)if\\(\"\\${CTEST_CONFIGURATION_TYPE}\" MATCHES \"(?<" + FieldNameCfgRegex + ">.+)\"\\)$");
-
-    private static readonly Regex AddTestRegex =
-      new Regex(@"^\s*add_test\s*\((?<" + FieldNameTestname + @">\S+)\s.*\).*$");
 
     /**
      * @brief verifies the file extension is .cmake
@@ -52,45 +48,8 @@ namespace CTestAdapter
         return Enumerable.Empty<string>();
       }
       var res = new List<string>();
-      var content = file.OpenText().ReadToEnd();
-      var matches = Regex.Matches(content, @".*[sS][uB][bB][dD][iI][rR][sS]\s*\((?<subdir>.*)\)");
-      var subdirs = (from Match match in matches select match.Groups["subdir"].Value).ToList();
-      if (content.Contains("add_test"))
-      {
-        res.Add(file.FullName);
-      }
-      foreach (var dir in subdirs)
-      {
-        var subpath = dir.Trim('\"');
-        subpath = Path.Combine(currentDir, subpath);
-        res.AddRange(TestContainerHelper.CollectCTestTestfiles(subpath));
-      }
+      res.Add(file.FullName);
       return res;
-    }
-
-    public static CTestTestCollection FindAllTestsWithCtest(CTestAdapterConfig cfg)
-    {
-      if (null == cfg)
-      {
-        return null;
-      }
-      if (!Directory.Exists(cfg.CacheDir))
-      {
-        return null;
-      }
-      if (!File.Exists(cfg.CTestExecutable))
-      {
-        return null;
-      }
-      var collection = new CTestTestCollection();
-      var collector = new CTestTestCollector
-      {
-        CTestExecutable = cfg.CTestExecutable,
-        CTestWorkingDir = cfg.CacheDir,
-        CurrentActiveConfig = cfg.ActiveConfiguration
-      };
-      collector.CollectTestCases(collection);
-      return collection;
     }
 
     public static string FindCTestExe(string basePath)
@@ -113,74 +72,73 @@ namespace CTestAdapter
       return string.Empty;
     }
 
-    public static Dictionary<string, TestCase> ParseTestContainerFile(string source, IMessageLogger log,
-      CTestTestCollection collection, string activeConfiguration)
+    public static List<TestCase> FindAllTests(CTestAdapterConfig cfg, string source, IMessageLogger log)
     {
-      log.SendMessage(TestMessageLevel.Informational, "Parsing CTest file: " + TestContainerHelper.ToLinkPath(source));
-      var cases = new Dictionary<string, TestCase>();
-      var content = File.ReadLines(source);
-      var skipFoundTests = false;
-      var lineNumber = 0;
-      foreach (var line in content)
+      List<TestCase> result = new List<TestCase>();
+      if (!File.Exists(cfg.CTestExecutable))
       {
-        lineNumber++;
-        var ifcheck = TestContainerHelper.IfLevelRegex.Match(line);
-        if(ifcheck.Success)
+        return result;
+      }
+      if (!Directory.Exists(cfg.CacheDir))
+      {
+        return result;
+      }
+      var args = "-N --show-only=json-v1";
+      if (!string.IsNullOrWhiteSpace(cfg.ActiveConfiguration))
+      {
+        args += " -C ";
+        args += cfg.ActiveConfiguration;
+      }
+      var proc = new System.Diagnostics.Process
+      {
+        StartInfo = new ProcessStartInfo()
         {
-          var cfgRegexString = ifcheck.Groups[FieldNameCfgRegex].Value;
-          var cfgRegex = new Regex(cfgRegexString);
-          skipFoundTests = !cfgRegex.IsMatch(activeConfiguration);
-          continue;
+          FileName = cfg.CTestExecutable,
+          WorkingDirectory = cfg.CacheDir,
+          Arguments = args,
+          CreateNoWindow = true,
+          RedirectStandardError = true,
+          RedirectStandardOutput = true,
+          WindowStyle = ProcessWindowStyle.Hidden,
+          UseShellExecute = false,
+          StandardOutputEncoding = Encoding.UTF8,
+          StandardErrorEncoding = Encoding.UTF8
         }
-        else if (line == "else()")
+      };
+      try
+      {
+        proc.Start();
+        var output = proc.StandardOutput.ReadToEnd();
+        var ctestInfo = JsonSerializer.Deserialize<CTestInfo>(output);
+        int index = 0;
+        foreach(var test in ctestInfo.tests)
         {
-          skipFoundTests = true;
-          continue;
-        }
-        else if (line == "endif()")
-        {
-          skipFoundTests = false;
-          continue;
-        }
-        var test = TestContainerHelper.AddTestRegex.Match(line);
-        if(test.Success)
-        {
-          var testname = test.Groups[FieldNameTestname].Value;
-          if (skipFoundTests)
+          var testcase = new TestCase(test.name, CTestExecutor.ExecutorUri, source);
+          if (ctestInfo.backtraceGraph.nodes.Length > test.backtrace)
           {
-            //log.SendMessage(TestMessageLevel.Warning,
-              //"skipping test because of Configuration mismatch: line " + lineNumber + ", test " + testname);
-            continue;
-          }
-          if (null != collection)
-          {
-            if (!collection.TestExists(testname))
+            var backtrace = ctestInfo.backtraceGraph.nodes[test.backtrace];
+            if (ctestInfo.backtraceGraph.files.Length > backtrace.file)
             {
-              log.SendMessage(TestMessageLevel.Warning,
-                "test not listed by ctest -N : " + testname);
+              var file = ctestInfo.backtraceGraph.files[backtrace.file];
+              testcase.CodeFilePath = file;
+              testcase.LineNumber = backtrace.line;
             }
           }
-          if (cases.ContainsKey(testname))
-          {
-            continue;
-          }
-          var testcase = new TestCase(testname, CTestExecutor.ExecutorUri, source)
-          {
-            CodeFilePath = source,
-            DisplayName = testname,
-            LineNumber = lineNumber,
-          };
-          if (null != collection)
-          {
-            if (collection.TestExists(testname))
-            {
-              testcase.DisplayName = collection[testname].Number.ToString().PadLeft(3, '0') + ": " + testname;
-            }
-          }
-          cases.Add(testname, testcase);
+          testcase.DisplayName = String.Format("#{0}: {1}", ++index, test.name);
+          testcase.LocalExtensionData = index;
+          result.Add(testcase);
         }
       }
-      return cases;
+      catch(Exception e)
+      {
+        log.SendMessage(TestMessageLevel.Error, "Could not parse CTest JSON output: " + e.ToString());
+        return result;
+      }
+      finally
+      {
+        proc.Dispose();
+      }
+      return result;
     }
 
     public static string FindCMakeCacheDirectory(string fileOrDirectory)

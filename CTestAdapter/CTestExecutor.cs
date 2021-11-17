@@ -79,9 +79,9 @@ namespace CTestAdapter
           "logs are written to (" + TestContainerHelper.ToLinkPath(logFileDir) + ")");
       foreach (var source in sourcesList)
       {
-        var cases = TestContainerHelper.ParseTestContainerFile(
-          source, frameworkHandle, null, this._config.ActiveConfiguration);
-        this.RunTests(cases.Values, runContext, frameworkHandle);
+        var cases = TestContainerHelper.FindAllTests(
+          this._config, source, this._log);
+        this.RunTests(cases, runContext, frameworkHandle);
       }
       this._runningFromSources = false;
       this.Log(TestMessageLevel.Informational, "running tests (src) done");

@@ -80,13 +80,12 @@ namespace CTestAdapter
       }
       this.Log(TestMessageLevel.Informational, "using ctest binary: " + cfg.CTestExecutable);
       // collect all existing tests by executing ctest
-      var collection = TestContainerHelper.FindAllTestsWithCtest(cfg);
       foreach (var source in v)
       {
-        var cases = TestContainerHelper.ParseTestContainerFile(source, this._log, collection, cfg.ActiveConfiguration);
-        foreach (var c in cases)
+        var cases = TestContainerHelper.FindAllTests(cfg, source, this._log);
+        foreach(var c in cases)
         {
-          discoverySink.SendTestCase(c.Value);
+          discoverySink.SendTestCase(c);
         }
       }
       this.Log(TestMessageLevel.Informational, "discovering done");

@@ -35,6 +35,9 @@ set(VSPACKAGE_REFERENCES
   System.Windows.Forms
   System.Xml)
 
+set(NUGET_REFERENCES
+  System.Text.Json_6.0.0)
+
 set(CTestAdapter_VSVersionRange
   "[${VS_VERSION}.0]")
 
@@ -175,6 +178,7 @@ set_target_properties(${ADAPTER_NAME}
   VS_GLOBAL_ROOTNAMESPACE "CTestAdapter"
   VS_DOTNET_TARGET_FRAMEWORK_VERSION "${DOTNET_FRAMEWORK_VERSION}"
   VS_DOTNET_REFERENCES "${CTestAdapter_REFERENCES}"
+  VS_PACKAGE_REFERENCES "${NUGET_REFERENCES}"
   VS_GLOBAL_MinimumVisualStudioVersion "${MSBUILD_VERSION}"
   VS_GLOBAL_Install "true"
   VS_GLOBAL_InstallFrom "Disk"
